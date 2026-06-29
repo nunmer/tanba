@@ -23,6 +23,10 @@ class SmartLink(Base):
     org_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("organization.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    # nullable -> org-level link; set -> scoped to a branch (DESIGN §5)
+    branch_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("branch.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     code: Mapped[str] = mapped_column(String(16), unique=True, nullable=False)
     slug: Mapped[str | None] = mapped_column(String(120), unique=True, nullable=True)
     # type: redirect | multi | landing

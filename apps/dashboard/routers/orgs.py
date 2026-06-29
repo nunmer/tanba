@@ -1,13 +1,15 @@
-"""Organizations: create (with owner membership) and list the caller's orgs."""
+"""Organizations: create, list, read, and update branding."""
 
 from __future__ import annotations
+
+import uuid
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from apps.dashboard.deps import CurrentUser, SessionDep
-from apps.dashboard.schemas import OrgCreate, OrgOut
+from apps.dashboard.deps import CurrentUser, SessionDep, authorize_org
+from apps.dashboard.schemas import OrgCreate, OrgOut, OrgUpdate
 from packages.core.models import Membership, Organization
 
 router = APIRouter(prefix="/orgs", tags=["orgs"])
@@ -38,3 +40,28 @@ async def list_orgs(user: CurrentUser, session: SessionDep) -> list[Organization
         .order_by(Organization.created_at)
     )
     return list(rows)
+
+
+@router.get("/{org_id}", response_model=OrgOut)
+async def get_org(org_id: uuid.UUID, user: CurrentUser, session: SessionDep) -> Organization:
+    await authorize_org(org_id, user, session, "member")
+    org = await session.get(Organization, org_id)
+    if org is None:  # member row existed but org gone — treat as not found
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not found")
+    return org
+
+
+@router.patch("/{org_id}", response_model=OrgOut)
+async def update_org(
+    org_id: uuid.UUID, body: OrgUpdate, user: CurrentUser, session: SessionDep
+) -> Organization:
+    await authorize_org(org_id, user, session, "admin")
+    org = await session.get(Organization, org_id)
+    if org is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="not found")
+    if body.name is not None:
+        org.name = body.name
+    if body.branding is not None:
+        org.branding = body.branding
+    await session.flush()
+    return org

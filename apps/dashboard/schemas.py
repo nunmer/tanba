@@ -43,15 +43,54 @@ class OrgOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OrgUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    branding: dict | None = None
+
+
+# ---- branches ----
+class BranchCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    address: str | None = Field(default=None, max_length=500)
+    timezone: str = Field(default="Asia/Almaty", max_length=64)
+
+
+class BranchUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    address: str | None = Field(default=None, max_length=500)
+    timezone: str | None = Field(default=None, max_length=64)
+
+
+class BranchOut(BaseModel):
+    id: uuid.UUID
+    org_id: uuid.UUID
+    name: str
+    address: str | None
+    timezone: str
+
+    model_config = {"from_attributes": True}
+
+
 # ---- links ----
 class LinkCreate(BaseModel):
     slug: str | None = Field(default=None, max_length=120, pattern=r"^[a-z0-9-]+$")
     type: str = Field(default="redirect", pattern=r"^(redirect|multi|landing)$")
+    branch_id: uuid.UUID | None = None
+    landing_config: dict | None = None
+
+
+class LinkUpdate(BaseModel):
+    slug: str | None = Field(default=None, max_length=120, pattern=r"^[a-z0-9-]+$")
+    type: str | None = Field(default=None, pattern=r"^(redirect|multi|landing)$")
+    branch_id: uuid.UUID | None = None
+    landing_config: dict | None = None
+    is_active: bool | None = None
 
 
 class LinkOut(BaseModel):
     id: uuid.UUID
     org_id: uuid.UUID
+    branch_id: uuid.UUID | None
     code: str
     slug: str | None
     type: str
@@ -70,6 +109,16 @@ class DestinationCreate(BaseModel):
     match: dict | None = None
 
 
+class DestinationUpdate(BaseModel):
+    url: str | None = Field(default=None, min_length=1, max_length=2048)
+    label: str | None = Field(default=None, max_length=120)
+    kind: str | None = Field(default=None, max_length=20)
+    priority: int | None = None
+    weight: int | None = Field(default=None, ge=1)
+    match: dict | None = None
+    is_active: bool | None = None
+
+
 class DestinationOut(BaseModel):
     id: uuid.UUID
     smartlink_id: uuid.UUID
@@ -81,3 +130,37 @@ class DestinationOut(BaseModel):
     is_active: bool
 
     model_config = {"from_attributes": True}
+
+
+# ---- media ----
+class MediaCreate(BaseModel):
+    smartlink_id: uuid.UUID
+    medium_type: str = Field(pattern=r"^(nfc_card|nfc_stand|nfc_sticker|qr_stand|business_card)$")
+    serial: str | None = Field(default=None, max_length=120)
+
+
+class MediaOut(BaseModel):
+    id: uuid.UUID
+    smartlink_id: uuid.UUID
+    medium_type: str
+    serial: str | None
+
+    model_config = {"from_attributes": True}
+
+
+# ---- members ----
+class MemberCreate(BaseModel):
+    email: EmailStr
+    role: str = Field(default="member", pattern=r"^(owner|admin|member)$")
+
+
+class MemberUpdate(BaseModel):
+    role: str = Field(pattern=r"^(owner|admin|member)$")
+
+
+class MemberOut(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    org_id: uuid.UUID
+    email: str
+    role: str
