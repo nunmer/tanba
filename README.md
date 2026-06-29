@@ -133,12 +133,19 @@ uv run uvicorn apps.dashboard.main:app --port 8002 --reload   # dashboard
 
 # 8. run the analytics worker
 uv run python -m workers.analytics_worker
+
+# 9. run the dashboard frontend (separate terminal)
+cd apps/web
+cp .env.example .env.local
+npm install
+npm run dev        # http://localhost:3000
 ```
 
 Then:
 
 - Public:   `http://localhost:8001/r/<code>`
-- Dashboard: `http://localhost:8002/docs`
+- Dashboard API: `http://localhost:8002/docs`
+- Dashboard UI:  `http://localhost:3000` (Next.js — register, create links, manage destinations)
 
 ---
 

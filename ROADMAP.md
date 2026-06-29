@@ -24,11 +24,10 @@ Build the *whole feature surface* (all entities/flows from `IMPLEMENTATION.md`) 
 | Landing pages | Jinja2 server-rendered in public-api |
 | Logs / metrics | `structlog` JSON logs, `prometheus-client` `/metrics` |
 | Tests | pytest + httpx ASGI transport, 80% coverage target |
-| Dashboard surface | **API-only for v1** (FastAPI `/docs`) — no React UI |
+| Frontend | **Next.js (App Router) + TypeScript + Tailwind** in `apps/web`, talking to dashboard-api JSON |
 
 ### Open decisions (revisit when relevant)
-1. **Dashboard UI** — API-only for v1; a React dashboard is a v2 milestone.
-2. **GeoIP** — MaxMind GeoLite2-City bundled locally; alternative is country-only from a lighter source.
+1. **GeoIP** — MaxMind GeoLite2-City bundled locally; alternative is country-only from a lighter source.
 
 ---
 
@@ -56,6 +55,13 @@ Scaffold + thinnest path proving the whole pipe.
 - Tenancy dependency: membership-checked routes, **404-not-403** existence hiding (DESIGN §9).
 - Delete-on-write cache invalidation on every link/destination mutation.
 - **Deliverable:** complete tenant management; cross-org access returns 404 (asserted by tests).
+
+### Milestone C.5 — Frontend dashboard (Next.js) 🎯
+The user-facing management UI, built against the existing dashboard-api.
+- `apps/web`: Next.js App Router + TypeScript + Tailwind; client-side JWT auth with refresh.
+- CORS enabled on dashboard-api for the web origin.
+- Pages: login/register, org list+create, org dashboard, links list+create, **link detail with destinations CRUD** (the core routing UI) showing the permanent public URL, branches, members, media, org settings/branding.
+- **Deliverable:** a human can register, create an org + link + destinations, and copy the permanent `tanba.kz/r/{code}` URL — all from the browser.
 
 ### Milestone D — Analytics pipeline
 - Fire-and-forget event emit to Redis Stream from public-api (never blocks redirect).
@@ -86,4 +92,4 @@ A ─▶ B ─▶ C ─▶ D ─▶ E ─▶ F
 
 ## Explicitly NOT in v1 (deferred)
 
-k8s/HA, CDN, managed DB, ClickHouse, real payments, React dashboard UI, edge resolution, white-label/loyalty/CRM roadmap surfaces (DESIGN §11).
+k8s/HA, CDN, managed DB, ClickHouse, real payments, edge resolution, white-label/loyalty/CRM roadmap surfaces (DESIGN §11).

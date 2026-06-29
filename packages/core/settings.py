@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     route_cache_ttl: int = 300
     public_base_url: str = "http://localhost:8001"
 
+    # Comma-separated list of allowed browser origins for the dashboard API (CORS).
+    cors_origins: str = "http://localhost:3000"
+
     event_stream: str = "tanba:events"
     geoip_db_path: str = ""
 
