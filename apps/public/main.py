@@ -17,6 +17,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from apps.public.branding import background_css, brand_for, safe_color, safe_href, safe_url
 from apps.public.loader import load_by_code, load_by_slug
 from packages.core import route_cache
 from packages.core.db import get_session
@@ -106,21 +107,43 @@ async def _get_link(
     return link
 
 
+def _build_actions(link: LinkView, cfg: dict) -> list[dict]:
+    """Branded action buttons (icon + color) from explicit config or active destinations."""
+    raw = cfg.get("actions")
+    if isinstance(raw, list) and raw:
+        sources = raw
+    else:
+        sources = [
+            {"url": d.url, "label": d.label, "kind": d.kind}
+            for d in link.destinations
+            if d.is_active
+        ]
+    actions = []
+    for item in sources:
+        brand = brand_for(item.get("kind", "url"))
+        actions.append(
+            {
+                "url": safe_href(item.get("url")),
+                "label": item.get("label") or brand["label"],
+                "badge": brand["badge"],
+                "icon": brand["icon"],
+            }
+        )
+    return actions
+
+
 def _render_landing(link: LinkView) -> HTMLResponse:
     cfg = link.landing_config or {}
-    theme = cfg.get("theme", {})
-    actions = cfg.get("actions") or [
-        {"label": d.kind.replace("_", " ").title(), "url": d.url}
-        for d in link.destinations
-        if d.is_active
-    ]
+    theme = cfg.get("theme", {}) if isinstance(cfg.get("theme"), dict) else {}
+    title = cfg.get("title") or "Choose an option"
     html = _TEMPLATES.get_template("landing.html").render(
-        title=cfg.get("title", "Choose an option"),
+        title=title,
         subtitle=cfg.get("subtitle"),
-        bg=theme.get("bg", "#0f1115"),
-        fg=theme.get("fg", "#f5f5f5"),
-        accent=theme.get("accent", "#2f6df6"),
-        actions=actions,
+        avatar=safe_url(cfg.get("avatar")),
+        initial=(title.strip()[:1] or "T").upper(),
+        background=background_css(theme),
+        fg=safe_color(theme.get("fg"), "#ffffff"),
+        actions=_build_actions(link, cfg),
     )
     return HTMLResponse(html, headers={"Cache-Control": _LANDING_CACHE})
 

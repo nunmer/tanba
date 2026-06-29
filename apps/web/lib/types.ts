@@ -19,6 +19,20 @@ export interface Branch {
   timezone: string;
 }
 
+export interface LandingTheme {
+  bg?: string;
+  gradient?: [string, string];
+  bgImage?: string;
+  fg?: string;
+}
+
+export interface LandingConfig {
+  title?: string;
+  subtitle?: string;
+  avatar?: string;
+  theme?: LandingTheme;
+}
+
 export interface Link {
   id: string;
   org_id: string;
@@ -27,6 +41,7 @@ export interface Link {
   slug: string | null;
   type: string;
   is_active: boolean;
+  landing_config: LandingConfig;
 }
 
 export interface Destination {

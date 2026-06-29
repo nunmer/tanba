@@ -95,6 +95,7 @@ class LinkOut(BaseModel):
     slug: str | None
     type: str
     is_active: bool
+    landing_config: dict
 
     model_config = {"from_attributes": True}
 

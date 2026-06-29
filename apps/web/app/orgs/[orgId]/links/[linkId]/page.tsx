@@ -6,7 +6,12 @@ import { useEffect, useState } from "react";
 import { Badge, Button, Card, ErrorText, Field, Input, PageHeader, Select } from "@/components/ui";
 import { apiDelete, apiGet, apiPatch, apiPost, PUBLIC_BASE } from "@/lib/api";
 import { useRequireAuth } from "@/lib/auth";
-import { DESTINATION_KINDS, type Destination, type Link as SmartLink } from "@/lib/types";
+import {
+  DESTINATION_KINDS,
+  type Destination,
+  type LandingConfig,
+  type Link as SmartLink,
+} from "@/lib/types";
 
 export default function LinkDetailPage() {
   const ok = useRequireAuth();
@@ -134,6 +139,12 @@ export default function LinkDetailPage() {
 
       <ErrorText>{err}</ErrorText>
       <DestinationForm linkId={linkId} onCreated={load} />
+
+      <h2 className="mb-1 mt-10 text-lg font-semibold">Appearance</h2>
+      <p className="mb-4 text-sm text-slate-500">
+        Controls the menu page shown for <strong>multi</strong> / <strong>landing</strong> links.
+      </p>
+      <AppearanceForm link={link} code={link.code} onSaved={load} />
     </>
   );
 }
@@ -173,6 +184,125 @@ function DestinationRow({ dest, onChange }: { dest: Destination; onChange: () =>
           </Button>
         </div>
       </div>
+    </Card>
+  );
+}
+
+type BgMode = "solid" | "gradient" | "image";
+
+function AppearanceForm({
+  link,
+  code,
+  onSaved,
+}: {
+  link: SmartLink;
+  code: string;
+  onSaved: () => void;
+}) {
+  const cfg: LandingConfig = link.landing_config ?? {};
+  const theme = cfg.theme ?? {};
+  const initialMode: BgMode = theme.bgImage ? "image" : theme.gradient ? "gradient" : "solid";
+
+  const [title, setTitle] = useState(cfg.title ?? "");
+  const [subtitle, setSubtitle] = useState(cfg.subtitle ?? "");
+  const [avatar, setAvatar] = useState(cfg.avatar ?? "");
+  const [fg, setFg] = useState(theme.fg ?? "#ffffff");
+  const [mode, setMode] = useState<BgMode>(initialMode);
+  const [bg, setBg] = useState(theme.bg ?? "#0f1115");
+  const [g1, setG1] = useState(theme.gradient?.[0] ?? "#1a1a2e");
+  const [g2, setG2] = useState(theme.gradient?.[1] ?? "#16213e");
+  const [bgImage, setBgImage] = useState(theme.bgImage ?? "");
+  const [err, setErr] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    setSaved(false);
+    const newTheme: Record<string, unknown> = { fg };
+    if (mode === "solid") newTheme.bg = bg;
+    else if (mode === "gradient") newTheme.gradient = [g1, g2];
+    else newTheme.bgImage = bgImage;
+    try {
+      await apiPatch(`/links/${link.id}`, {
+        landing_config: { title, subtitle, avatar: avatar || undefined, theme: newTheme },
+      });
+      setSaved(true);
+      onSaved();
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
+
+  const preview = `${PUBLIC_BASE}/l/${code}`;
+  return (
+    <Card className="max-w-2xl">
+      <form onSubmit={save} className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Title">
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Zebra Coffee" />
+          </Field>
+          <Field label="Subtitle">
+            <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Almaty" />
+          </Field>
+        </div>
+        <Field label="Logo / avatar image URL (optional)">
+          <Input value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://…/logo.png" />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Background">
+            <Select value={mode} onChange={(e) => setMode(e.target.value as BgMode)}>
+              <option value="solid">Solid color</option>
+              <option value="gradient">Gradient</option>
+              <option value="image">Image URL</option>
+            </Select>
+          </Field>
+          <Field label="Text color">
+            <input
+              type="color"
+              value={fg}
+              onChange={(e) => setFg(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-300"
+            />
+          </Field>
+        </div>
+
+        {mode === "solid" && (
+          <Field label="Background color">
+            <input
+              type="color"
+              value={bg}
+              onChange={(e) => setBg(e.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-300"
+            />
+          </Field>
+        )}
+        {mode === "gradient" && (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Gradient from">
+              <input type="color" value={g1} onChange={(e) => setG1(e.target.value)} className="h-10 w-full rounded-lg border border-slate-300" />
+            </Field>
+            <Field label="Gradient to">
+              <input type="color" value={g2} onChange={(e) => setG2(e.target.value)} className="h-10 w-full rounded-lg border border-slate-300" />
+            </Field>
+          </div>
+        )}
+        {mode === "image" && (
+          <Field label="Background image URL">
+            <Input value={bgImage} onChange={(e) => setBgImage(e.target.value)} placeholder="https://…/bg.jpg" />
+          </Field>
+        )}
+
+        <ErrorText>{err}</ErrorText>
+        <div className="flex items-center gap-3">
+          <Button type="submit">Save appearance</Button>
+          <a href={preview} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-brand">
+            Preview ↗
+          </a>
+          {saved && <span className="text-sm text-green-600">Saved.</span>}
+        </div>
+      </form>
     </Card>
   );
 }

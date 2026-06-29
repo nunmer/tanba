@@ -5,33 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }}</title>
   <style>
-    :root { --bg: {{ bg }}; --fg: {{ fg }}; --accent: {{ accent }}; }
-    * { box-sizing: border-box; }
+    :root { --fg: {{ fg }}; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; }
     body {
-      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: var(--bg); color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      background: {{ background }};
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 48px 18px 32px;
     }
-    .card { width: 100%; max-width: 420px; padding: 32px 24px; text-align: center; }
-    h1 { font-size: 1.5rem; margin: 0 0 8px; }
-    p.subtitle { opacity: .7; margin: 0 0 24px; }
-    a.action {
-      display: block; padding: 14px 18px; margin: 10px 0; border-radius: 12px;
-      background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+    .wrap { width: 100%; max-width: 460px; text-align: center; }
+
+    .avatar {
+      width: 92px; height: 92px; border-radius: 999px; object-fit: cover;
+      margin: 0 auto 18px; display: block;
+      border: 3px solid rgba(255,255,255,.85);
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
     }
-    a.action:active { transform: translateY(1px); }
-    footer { margin-top: 24px; font-size: .75rem; opacity: .5; }
+    .avatar-fallback {
+      width: 92px; height: 92px; border-radius: 999px; margin: 0 auto 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px; font-weight: 700; color: #fff;
+      background: rgba(255,255,255,.18); backdrop-filter: blur(6px);
+      border: 3px solid rgba(255,255,255,.85);
+    }
+
+    h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 4px; }
+    .subtitle { margin: 0 0 28px; opacity: .8; font-size: .95rem; }
+
+    .actions { display: flex; flex-direction: column; gap: 14px; }
+    .action {
+      display: flex; align-items: center; gap: 14px;
+      width: 100%; padding: 12px 16px;
+      background: #fff; color: #11161c;
+      border-radius: 16px; text-decoration: none;
+      font-weight: 600; font-size: 1rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .action:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,.26); }
+    .action:active { transform: translateY(0); }
+    .badge {
+      flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .badge svg { width: 22px; height: 22px; }
+    .label { flex: 1 1 auto; text-align: center; padding-right: 40px; }
+
+    .empty { opacity: .7; }
+    footer { margin-top: 34px; font-size: .72rem; opacity: .55; }
+    footer a { color: inherit; text-decoration: none; }
   </style>
 </head>
 <body>
-  <main class="card">
+  <main class="wrap">
+    {% if avatar %}
+      <img class="avatar" src="{{ avatar }}" alt="">
+    {% else %}
+      <div class="avatar-fallback">{{ initial }}</div>
+    {% endif %}
+
     <h1>{{ title }}</h1>
     {% if subtitle %}<p class="subtitle">{{ subtitle }}</p>{% endif %}
-    {% for action in actions %}
-      <a class="action" href="{{ action.url }}" rel="noopener">{{ action.label }}</a>
-    {% endfor %}
-    {% if not actions %}<p class="subtitle">No actions available.</p>{% endif %}
-    <footer>Powered by Tanba</footer>
+
+    <div class="actions">
+      {% for a in actions %}
+        <a class="action" href="{{ a.url }}" rel="noopener" target="_blank">
+          <span class="badge" style="background: {{ a.badge }}">{{ a.icon | safe }}</span>
+          <span class="label">{{ a.label }}</span>
+        </a>
+      {% endfor %}
+      {% if not actions %}<p class="empty">No actions available.</p>{% endif %}
+    </div>
+
+    <footer>Powered by <a href="https://tanba.kz" rel="noopener">Tanba</a></footer>
   </main>
 </body>
 </html>

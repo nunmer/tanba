@@ -32,6 +32,7 @@ def to_link_view(link: SmartLink) -> LinkView:
                 weight=d.weight,
                 match=d.match,
                 is_active=d.is_active,
+                label=d.label,
             )
             for d in link.destinations
         ),

@@ -198,6 +198,31 @@ A SmartLink's `type` decides what a tap *does* with its destinations:
 
 Common gotcha: adding several "always" destinations to a `redirect` link and expecting a menu. That produces an A/B split; switch the link to `multi` for a menu. The dashboard surfaces this with an inline warning and a type switcher.
 
+### Landing appearance (`SmartLink.landing_config`)
+
+`multi`/`landing` links render a branded menu page. `landing_config` (jsonb) drives it,
+edited from the dashboard's link **Appearance** panel:
+
+```json
+{
+  "title": "Zebra Coffee",
+  "subtitle": "Almaty",
+  "avatar": "https://…/logo.png",
+  "theme": {
+    "bg": "#0f1115",                    // solid color, OR
+    "gradient": ["#1a1a2e", "#16213e"], // gradient (overrides bg), OR
+    "bgImage": "https://…/bg.jpg",      // image (overrides gradient)
+    "fg": "#ffffff"
+  }
+}
+```
+
+Each destination renders as a pill button with a brand icon + color derived from its
+`kind` (Instagram, 2GIS, Google/Apple/Yandex Maps, WhatsApp, Telegram, generic URL);
+the button text is the destination's `label` (falling back to the brand name). Icons are
+inline SVG (no external requests). User-supplied colors/URLs are sanitized, and only
+`http(s)/mailto/tel` destination links are allowed (no `javascript:`).
+
 ---
 
 ## 5. Endpoints

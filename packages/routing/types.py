@@ -21,6 +21,7 @@ class DestinationView:
     weight: int
     match: dict[str, Any] | None
     is_active: bool = True
+    label: str = ""
 
 
 @dataclass(frozen=True, slots=True)
