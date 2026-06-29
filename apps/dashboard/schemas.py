@@ -127,6 +127,7 @@ class DestinationOut(BaseModel):
     kind: str
     priority: int
     weight: int
+    match: dict | None
     is_active: bool
 
     model_config = {"from_attributes": True}

@@ -186,6 +186,18 @@ Supported keys: `platform` (ios/android/other), `country`, `city`, `schedule`, `
 
 Adding a new rule type = adding a key to `matches()`; no schema change.
 
+### Link types & multiple destinations
+
+A SmartLink's `type` decides what a tap *does* with its destinations:
+
+| `type` | Behavior |
+|--------|----------|
+| `redirect` | Resolves to **exactly one** destination and `302`s to it. Among matching destinations the lowest `priority` wins; ties at the same priority are an **A/B split by `weight`**, sticky per visitor. Two always-match (`match: null`) destinations at equal priority therefore behave as a 50/50 A/B test — a single visitor consistently sees one of them, *not* both. |
+| `multi` | Renders the landing page as a **menu**, listing every active destination as a button. Use this when the customer should *choose* (e.g. leave a 2GIS review **and** follow on Instagram). |
+| `landing` | Renders the full branded landing page (`landing_config`). |
+
+Common gotcha: adding several "always" destinations to a `redirect` link and expecting a menu. That produces an A/B split; switch the link to `multi` for a menu. The dashboard surfaces this with an inline warning and a type switcher.
+
 ---
 
 ## 5. Endpoints

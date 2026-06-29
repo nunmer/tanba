@@ -37,6 +37,7 @@ export interface Destination {
   kind: string;
   priority: number;
   weight: number;
+  match: Record<string, unknown> | null;
   is_active: boolean;
 }
 

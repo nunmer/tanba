@@ -43,6 +43,11 @@ export default function LinkDetailPage() {
     load();
   }
 
+  async function changeType(type: string) {
+    await apiPatch(`/links/${linkId}`, { type });
+    load();
+  }
+
   async function removeLink() {
     if (!confirm("Delete this link and all its destinations?")) return;
     await apiDelete(`/links/${linkId}`);
@@ -89,8 +94,15 @@ export default function LinkDetailPage() {
             Test ↗
           </a>
         </div>
-        <div className="mt-3 flex gap-2 text-sm">
-          <Badge>{link.type}</Badge>
+        <div className="mt-3 flex items-center gap-3 text-sm">
+          <label className="flex items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Type</span>
+            <Select value={link.type} onChange={(e) => changeType(e.target.value)} className="w-auto">
+              <option value="redirect">redirect (one target per tap)</option>
+              <option value="multi">multi (menu of all targets)</option>
+              <option value="landing">landing (full page)</option>
+            </Select>
+          </label>
           <Badge tone={link.is_active ? "green" : "amber"}>
             {link.is_active ? "active" : "inactive"}
           </Badge>
@@ -103,6 +115,15 @@ export default function LinkDetailPage() {
         Lowest <strong>priority</strong> number wins among matching rules; equal priorities split by{" "}
         <strong>weight</strong> (A/B). Leave the match empty for a catch-all default.
       </p>
+
+      {link.type === "redirect" &&
+        dests.filter((d) => d.is_active && !d.match).length >= 2 && (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+            This is a <strong>redirect</strong> link with multiple always-on destinations, so each
+            tap goes to <strong>one</strong> of them (a sticky A/B split) — not all. To show every
+            destination as a menu, set <strong>Type</strong> above to <strong>multi</strong>.
+          </div>
+        )}
 
       <div className="mb-6 grid gap-2">
         {dests.length === 0 && <p className="text-sm text-slate-500">No destinations yet.</p>}
@@ -139,7 +160,8 @@ function DestinationRow({ dest, onChange }: { dest: Destination; onChange: () =>
           </div>
           <div className="truncate text-sm text-slate-500">{dest.url}</div>
           <div className="mt-1 text-xs text-slate-400">
-            priority {dest.priority} · weight {dest.weight}
+            priority {dest.priority} · weight {dest.weight} · when{" "}
+            {dest.match ? <code>{JSON.stringify(dest.match)}</code> : "always"}
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
