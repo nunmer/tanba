@@ -14,8 +14,10 @@ from apps.dashboard.schemas import (
     LinkCreate,
     LinkOut,
 )
+from packages.core import route_cache
 from packages.core.ids import generate_code
 from packages.core.models import Destination, SmartLink
+from packages.core.redis import get_redis
 
 router = APIRouter(tags=["links"])
 
@@ -80,4 +82,6 @@ async def add_destination(
     )
     session.add(dest)
     await session.flush()
+    # delete-on-write: drop any cached resolution so the new destination is seen at once
+    await route_cache.invalidate(get_redis(), code=link.code, slug=link.slug)
     return dest

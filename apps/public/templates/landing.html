@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    :root { --bg: {{ bg }}; --fg: {{ fg }}; --accent: {{ accent }}; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--bg); color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .card { width: 100%; max-width: 420px; padding: 32px 24px; text-align: center; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; }
+    p.subtitle { opacity: .7; margin: 0 0 24px; }
+    a.action {
+      display: block; padding: 14px 18px; margin: 10px 0; border-radius: 12px;
+      background: var(--accent); color: #fff; text-decoration: none; font-weight: 600;
+    }
+    a.action:active { transform: translateY(1px); }
+    footer { margin-top: 24px; font-size: .75rem; opacity: .5; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>{{ title }}</h1>
+    {% if subtitle %}<p class="subtitle">{{ subtitle }}</p>{% endif %}
+    {% for action in actions %}
+      <a class="action" href="{{ action.url }}" rel="noopener">{{ action.label }}</a>
+    {% endfor %}
+    {% if not actions %}<p class="subtitle">No actions available.</p>{% endif %}
+    <footer>Powered by Tanba</footer>
+  </main>
+</body>
+</html>
